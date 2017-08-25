@@ -7,7 +7,7 @@
 
     public class PluginMain : IPlugin {
         [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-        public PluginMain(ServerInterfaceProxy proxy) {
+        public PluginMain(ServerInterfaceProxy proxy, params string[] args) {
         }
 
         public void Init() { }
@@ -44,6 +44,34 @@
             };
         }
 
+        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
+        private static extern int CoGetClassObject(
+            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
+            int dwClsContext,
+            IntPtr pServerInfo,
+            [MarshalAs(UnmanagedType.LPStruct)] Guid riid,
+            [Out] IntPtr ppv
+        );
+
+        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
+        private static extern int CoCreateInstance(
+            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
+            IntPtr ptr,
+            int dwClsContext,
+            [MarshalAs(UnmanagedType.LPStruct)] Guid riid,
+            [Out] IntPtr ppv
+        );
+
+        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
+        private static extern int CoCreateInstanceEx(
+            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
+            IntPtr ptr,
+            int dwClsContext,
+            IntPtr pServerInfo,
+            uint cmq,
+            [In] [Out] IntPtr pResults
+        );
+
         [Serializable]
         public class LogData {
             public Guid Guid;
@@ -59,18 +87,10 @@
                             basekey.OpenSubKey("InProcServer32")?.GetValue("Class") ??
                             basekey.OpenSubKey("InProcServer32")?.GetValue("") ??
                             basekey.OpenSubKey("LocalServer32")?.GetValue("")
-                    )?.ToString() ?? string.Empty;
+                           )?.ToString() ??
+                           string.Empty;
             }
         }
-
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
-        private static extern int CoGetClassObject(
-            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
-            int dwClsContext,
-            IntPtr pServerInfo,
-            [MarshalAs(UnmanagedType.LPStruct)] Guid riid,
-            [Out] IntPtr ppv
-        );
 
         private delegate int CoGetClassObjectDelegate(
             Guid rclsid,
@@ -78,15 +98,6 @@
             IntPtr pServerInfo,
             Guid riid,
             IntPtr ppv
-        );
-
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
-        private static extern int CoCreateInstance(
-            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
-            IntPtr ptr,
-            int dwClsContext,
-            [MarshalAs(UnmanagedType.LPStruct)] Guid riid,
-            [Out] IntPtr ppv
         );
 
         private delegate int CoCreateInstanceDelegate(
@@ -97,23 +108,13 @@
             [Out] IntPtr ppv
         );
 
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
-        private static extern int CoCreateInstanceEx(
-            [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
-            IntPtr ptr,
-            int dwClsContext,
-            IntPtr pServerInfo,
-            uint cmq,
-            [In, Out] IntPtr pResults
-        );
-
         private delegate int CoCreateInstanceExDelegate(
             [MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
             IntPtr ptr,
             int dwClsContext,
             IntPtr pServerInfo,
             uint cmq,
-            [In, Out] IntPtr pResults
+            [In] [Out] IntPtr pResults
         );
     }
 }
